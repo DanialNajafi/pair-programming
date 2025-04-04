@@ -1,18 +1,42 @@
-import { calculateProRataVacationDays, Employment } from "./vacation-days";
+import { calculateProRataVacationDays, Employment } from './vacation-days';
 
-test("full year 100% employment gives all vacation days", () => {
-  // Arrange
-  const fullTime: Employment = {
-    startDate: new Date(Date.parse("2025-01-01 00:00:00+01:00")),
-    untilDate: new Date(Date.parse("2025-12-31 23:59:59+01:00")),
-    percentage: 100,
-    vacationDays: 25,
-  };
-  const expected = 25;
+describe('calculateProRataVacationDays', () => {
+  it('Vollzeitanstellung über das ganze Jahr', () => {
+    const employment: Employment = {
+      startDate: new Date(2025, 0, 1),   // 1. Januar 2025
+      untilDate: new Date(2025, 11, 31),   // 31. Dezember 2025
+      percentage: 100,
+    };
+    expect(calculateProRataVacationDays(employment, 25)).toBe(25);
+  });
 
-  // Act
-  const actual = calculateProRataVacationDays(fullTime);
+  it('Teilzeitanstellung über das ganze Jahr', () => {
+    const employment: Employment = {
+      startDate: new Date(2025, 0, 1),
+      untilDate: new Date(2025, 11, 31),
+      percentage: 50,
+    };
+    // Berechnung: 25 * (365/365) * 0.5 = 12.5 Ferientage
+    expect(calculateProRataVacationDays(employment, 25)).toBeCloseTo(12.5, 2);
+  });
 
-  // Assert
-  expect(actual).toBe(expected);
+  it('Vollzeitanstellung über weniger als das ganze Jahr', () => {
+    // Beispiel: 1. Januar 2025 bis 31. März 2025 (31 + 28 + 31 = 90 Tage, da 2025 kein Schaltjahr ist)
+    const employment: Employment = {
+      startDate: new Date(2025, 0, 1),
+      untilDate: new Date(2025, 2, 31),
+      percentage: 100,
+    };
+    expect(calculateProRataVacationDays(employment, 25)).toBeCloseTo(25 * (90 / 365), 2);
+  });
+
+  it('Teilzeitanstellung über weniger als das ganze Jahr', () => {
+    // Beispiel: 1. Januar 2025 bis 31. März 2025, 70% Pensum
+    const employment: Employment = {
+      startDate: new Date(2025, 0, 1),
+      untilDate: new Date(2025, 2, 31),
+      percentage: 70,
+    };
+    expect(calculateProRataVacationDays(employment, 25)).toBeCloseTo(25 * (90 / 365) * 0.7, 2);
+  });
 });
